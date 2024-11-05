@@ -1,0 +1,17 @@
+# .traefik.yml
+
+name: "traefik_batchwise"
+displayName: "Traefik Batchwise Middleware"
+type: "middleware"
+import: "github.com/mmghobadi/traefik_batchwise"
+version: "v0.1.0"
+description: "A custom middleware for batching events."
+summary: "Middleware for batching and processing events in Traefik."
+testData:
+  simple:
+    # Provide minimal configuration for testing
+    Config: {}
+goVersion: "1.22"  # Update to match your Go version
+author:
+  name: "Mohammad gh"
+  email: "mm.qobadi@outlook.com"
