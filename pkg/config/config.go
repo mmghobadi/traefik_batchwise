@@ -35,7 +35,7 @@ type Constants struct {
 	C     float64 `yaml:"c"`
 }
 
-func LoadConfig(path string) *Config {
+func LoadConfig() *Config {
 
 	var cfg = Config{
 		Weights: Weights{

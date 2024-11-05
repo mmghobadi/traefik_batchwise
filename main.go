@@ -10,10 +10,15 @@ import (
 	"github.com/mmghobadi/traefik_batchwise/pkg/models"
 )
 
+// CreateConfig creates the default plugin configuration.
+func CreateConfig() *config.Config {
+	return config.LoadConfig()
+}
+
 // New creates a new Middleware instance.
 func New(ctx context.Context, next http.Handler) (http.Handler, error) {
 	// Load configuration
-	cfg := config.LoadConfig("configs/config.yaml")
+	cfg := CreateConfig()
 	m := &middleware.Middleware{
 		NextHandler:       next,
 		Config:            cfg,
