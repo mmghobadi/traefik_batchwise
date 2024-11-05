@@ -23,3 +23,13 @@ type Event struct {
 type Batch struct {
 	Events []Event
 }
+
+type EventChannels struct {
+	EventInput chan Event
+}
+
+func NewEventChannels() *EventChannels {
+	return &EventChannels{
+		EventInput: make(chan Event, 1000),
+	}
+}

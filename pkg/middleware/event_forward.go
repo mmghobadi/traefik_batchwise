@@ -25,7 +25,7 @@ func (m *Middleware) ForwardEvent(event models.Event) {
 	event.Request.Header.Set("X-Event-Urgency", fmt.Sprintf("%f", event.Urgency))
 	event.Request.Header.Set("X-Event-System-Priority", fmt.Sprintf("%f", event.Priority))
 
-	m.NextHandler.ServeHTTP(event.Writer, event.Request)
+	m.Proxy.ServeHTTP(event.Writer, event.Request)
 
 	// // Create a new request
 	// client := &http.Client{}

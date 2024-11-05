@@ -5,6 +5,34 @@ import (
 	"time"
 )
 
+// func (m *Middleware) httpHandler(w http.ResponseWriter, r *http.Request) {
+// 	if m.FirstRequestTime.IsZero() {
+// 		m.FirstRequestTime = time.Now()
+// 	}
+// 	m.LastRequestTime = time.Now()
+
+// 	// Parse event urgency from request
+// 	eventUrgency, _ := strconv.ParseFloat(r.Header.Get("X-Event-Urgency"), 64)
+
+// 	// Parse event from request (simplified)
+// 	event := models.Event{
+// 		ID:           r.Header.Get("X-Event-ID"),
+// 		Type:         r.Header.Get("X-Event-Type"),
+// 		Urgency:      eventUrgency,
+// 		ReceivedTime: time.Now(),
+// 		// Payload: r.Body,
+// 		Request: r,
+// 	}
+// 	if event.Urgency > 3 {
+// 		event.IsUserHighPriority = true
+// 	}
+
+// 	// Add event to the input channel
+// 	m.EventInput <- event
+
+// 	w.WriteHeader(http.StatusOK)
+// }
+
 func (m *Middleware) eventHandler() {
 	for {
 		select {

@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	"net/http"
-	"strconv"
+	"net/http/httputil"
 	"sync"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 
 type Middleware struct {
 	Config            *config.Config
-	NextHandler       http.Handler
+	Proxy             *httputil.ReverseProxy
 	EventInput        chan models.Event
 	HighPriorityQueue chan models.Event
 	LowPriorityQueue  chan models.Event
@@ -25,10 +24,10 @@ type Middleware struct {
 	RequestCount      int32
 }
 
-func NewMiddleware(cfg *config.Config) *Middleware {
+func NewMiddleware(cfg *config.Config, eventChannel *models.EventChannels) *Middleware {
 	return &Middleware{
 		Config:            cfg,
-		EventInput:        make(chan models.Event, 1000),
+		EventInput:        eventChannel.EventInput,
 		HighPriorityQueue: make(chan models.Event, 1000),
 		LowPriorityQueue:  make(chan models.Event, 10000),
 		BatchQueue:        make(chan models.Batch, 100),
@@ -66,37 +65,6 @@ func (m *Middleware) Start() {
 	}()
 
 	wg.Wait()
-}
-
-// ServeHTTP processes incoming HTTP requests.
-func (m *Middleware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if m.FirstRequestTime.IsZero() {
-		m.FirstRequestTime = time.Now()
-	}
-	m.LastRequestTime = time.Now()
-
-	// Parse event urgency from request
-	eventUrgency, _ := strconv.ParseFloat(req.Header.Get("X-Event-Urgency"), 64)
-
-	// Parse event from request (simplified)
-	event := models.Event{
-		ID:           req.Header.Get("X-Event-ID"),
-		Type:         req.Header.Get("X-Event-Type"),
-		Urgency:      eventUrgency,
-		ReceivedTime: time.Now(),
-		// Payload: r.Body,
-		Request: req,
-		Writer:  rw,
-	}
-	if event.Urgency > 3 {
-		event.IsUserHighPriority = true
-	}
-
-	// Add event to the input channel
-	m.EventInput <- event
-
-	// Call the next handler
-	// m.next.ServeHTTP(rw, req)
 }
 
 // // ---------------------FIFO Event Handler---------------------

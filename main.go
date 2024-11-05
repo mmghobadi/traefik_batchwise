@@ -1,34 +1,43 @@
-package traefik_batchwise
+package main
 
 import (
-	"context"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/mmghobadi/traefik_batchwise/pkg/config"
+	"github.com/mmghobadi/traefik_batchwise/pkg/gateway"
 	"github.com/mmghobadi/traefik_batchwise/pkg/middleware"
 	"github.com/mmghobadi/traefik_batchwise/pkg/models"
 )
 
-// CreateConfig creates the default plugin configuration.
-func CreateConfig() *config.Config {
-	return config.LoadConfig()
-}
+func main() {
 
-// New creates a new Middleware instance.
-func New(ctx context.Context, next http.Handler, cfg *config.Config, name string) (http.Handler, error) {
-	// Load configuration
-	config := CreateConfig()
-	m := &middleware.Middleware{
-		NextHandler:       next,
-		Config:            config,
-		EventInput:        make(chan models.Event, 1000),
-		HighPriorityQueue: make(chan models.Event, 1000),
-		LowPriorityQueue:  make(chan models.Event, 10000),
-		BatchQueue:        make(chan models.Batch, 100),
-		StopChan:          make(chan bool),
-		LastBatchTime:     time.Now(),
+	// Initialize shared channels
+	eventChannels := models.NewEventChannels()
+
+	// Initialize middleware
+	cfg := config.LoadConfig()
+	mw := middleware.NewMiddleware(cfg, eventChannels)
+
+	gateway, err := gateway.NewGateway("http://127.0.0.1:5011/event", eventChannels)
+	if err != nil {
+		log.Fatal(err)
 	}
-	m.Start()
-	return m, nil
+
+	mw.Proxy = gateway.Proxy
+	go mw.Start()
+
+	server := &http.Server{
+		Addr:         ":8050",
+		Handler:      gateway,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	log.Printf("Starting API Gateway on %s", server.Addr)
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }
