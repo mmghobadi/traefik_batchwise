@@ -16,12 +16,12 @@ func CreateConfig() *config.Config {
 }
 
 // New creates a new Middleware instance.
-func New(ctx context.Context, next http.Handler) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler, cfg *config.Config, name string) (http.Handler, error) {
 	// Load configuration
-	cfg := CreateConfig()
+	config := CreateConfig()
 	m := &middleware.Middleware{
 		NextHandler:       next,
-		Config:            cfg,
+		Config:            config,
 		EventInput:        make(chan models.Event, 1000),
 		HighPriorityQueue: make(chan models.Event, 1000),
 		LowPriorityQueue:  make(chan models.Event, 10000),
